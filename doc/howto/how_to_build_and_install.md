@@ -47,11 +47,53 @@ sudo make install
 
 <u>
 ```
-cmake .. -DCMAKE_CXX_STANDARD=14
+cmake .. -DCMAKE_CXX_STANDARD=14 -DPYTHON_BINDING=ON
 make
 sudo make install
 ```
 </u>
+
+or
+
+
+
+`sudo apt install swig`
+
+Сброка:
+
+```
+cd ~/weae/YDLidar-SDKs
+rm -rf python_build
+mkdir python_build && cd python_build
+cmake .. -DPYTHON_BINDING=ON -DCMAKE_CXX_STANDARD=14 -DBUILD_TEST=OFF
+make -j$(nproc)
+```
+
+Проверить наличие:
+
+`find ~/weae/YDLidar-SDKs -name "ydlidar*.so"`
+
+Переместить в пакет `ydlidar`:
+
+```
+cd ~/weae/YDLidar-SDKs/python
+mkdir -p ydlidar
+mv ../python_build/python/_ydlidar.so ydlidar/
+echo "from ._ydlidar import *" > ydlidar/__init__.py
+```
+
+После этого добавь путь к пакету в `PYTHONPATH`:
+```
+export PYTHONPATH=$PYTHONPATH:~/weae/YDLidar-SDKs/python
+```
+
+Проверить импорт:
+
+```
+python3 -c "import ydlidar; print('OK: ydlidar imported')"
+```
+
+
 
 Note:
   If already installed python and swig, `sudo make install` command will also install python API without the following operations.
