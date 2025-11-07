@@ -31,3 +31,6 @@
 # IDE
 .vscode/*
 CMakeLists.txt.*
+
+# BUILD
+*build

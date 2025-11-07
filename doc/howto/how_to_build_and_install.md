@@ -44,6 +44,15 @@ cmake ..
 make
 sudo make install
 ```
+
+<u>
+```
+cmake .. -DCMAKE_CXX_STANDARD=14
+make
+sudo make install
+```
+</u>
+
 Note:
   If already installed python and swig, `sudo make install` command will also install python API without the following operations.
 
