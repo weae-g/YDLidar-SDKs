@@ -13,7 +13,7 @@ public:
     : Node("ydlidar_node")
     {
         // Паблишер сканов
-        publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("/scan", 10);
+        publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("/scan", 5);
 
         // Инициализация SDK
         os_init();
@@ -21,11 +21,10 @@ public:
 
         // Настройки LiDAR
         string port = "/dev/ttyUSB0";
-        int baudrate = 128000;         // как в твоём тесте
+        int baudrate = 128000;
         bool single_channel = true;    // T1 одноканальный
-        float frequency = 5.0f;        // безопасная частота сканирования для T1
+        float frequency = 7.0f;        // безопасная частота сканирования
 
-        // Настройка LiDAR (по адресу для int/float/bool)
         laser_->setlidaropt(LidarPropSerialPort, port.c_str(), port.size());
         laser_->setlidaropt(LidarPropSerialBaudrate, &baudrate, sizeof(int));
 
@@ -52,9 +51,9 @@ public:
 
         RCLCPP_INFO(this->get_logger(), "LiDAR is running!");
 
-        // Таймер публикации каждые 50 мс (~20 Hz)
+        // Таймер публикации каждые 200 мс (~5 Hz)
         timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(50),
+            std::chrono::milliseconds(200),
             std::bind(&YDLidarNode::publish_scan, this)
         );
     }
@@ -90,13 +89,23 @@ private:
         msg.range_max = cfg.max_range;
 
         size_t npoints = scan.points.size();
-        msg.ranges.resize(npoints);
-        msg.intensities.resize(npoints);
+        size_t step = 2; // публикуем каждую вторую точку, чтобы снизить нагрузку
+        size_t out_points = (npoints + step - 1) / step;
 
-        for (size_t i = 0; i < npoints; ++i) {
+        msg.ranges.resize(out_points);
+        msg.intensities.resize(out_points);
+
+        for (size_t i = 0, j = 0; i < npoints; i += step, ++j) {
             auto p = scan.points[i];
-            msg.ranges[i] = (p.range <= 0.0f) ? std::numeric_limits<float>::infinity() : p.range;
-            msg.intensities[i] = p.intensity;
+            float range = p.range;
+
+            // Фильтр некорректных данных
+            if (range < cfg.min_range || range > cfg.max_range) {
+                range = std::numeric_limits<float>::infinity();
+            }
+
+            msg.ranges[j] = range;
+            msg.intensities[j] = p.intensity;
         }
 
         publisher_->publish(msg);

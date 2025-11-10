@@ -100,13 +100,40 @@ Note:
 
 ### python API install separtately:
 The Next operation only installs the python API, if the above command has been executed, there is no need to perform the next operation.
+
+---
+
+```
+python3 -m venv ~/weae_venv
+source ~/weae_venv/bin/activate
+pip install --upgrade pip setuptools wheel
+```
+
+```
+cd ~/weae/YDLidar-SDKs
+mkdir -p build
+cd build
+cmake .. -DCMAKE_CXX_STANDARD=14 -DBUILD_TEST=OFF
+cmake --build . -j$(nproc)
+```
+
+```
+cd ~/weae/YDLidar-SDKs
+pip3 install .
+
+python3 setup.py build
+python3 setup.py install
+```
+
+---
+
 ```
 cd YDLidar-SDK
-pip install .
+pip3 install .
 
 # Another method
-python setup.py build
-python setup.py install
+python3 setup.py build
+python3 setup.py install
 ```
 
 ### Windows 7/10
